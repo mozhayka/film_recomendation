@@ -2,31 +2,38 @@ package client
 
 import (
 	"compress/gzip"
+	"context"
 	"encoding/json"
+	"golang.org/x/time/rate"
 	"io"
 	"net/http"
 	"time"
 )
 
-type DataRetriever struct {
+type dataRetriever struct {
 	*http.Client
+	limiter *rate.Limiter
 }
 
-func NewClient() *DataRetriever {
-	return &DataRetriever{
-		Client: http.DefaultClient,
+func NewDataRetriever() *dataRetriever {
+	return &dataRetriever{
+		Client:  http.DefaultClient,
+		limiter: rate.NewLimiter(3, 1),
 	}
 }
 
-func (c *DataRetriever) WithTimeout(timeout time.Duration) {
+func (c *dataRetriever) WithTimeout(timeout time.Duration) {
 	c.Client.Timeout = timeout
+	c.Client.Transport = &http.Transport{
+		DisableKeepAlives: true,
+	}
 }
 
-func (c *DataRetriever) WithTransport(transport http.RoundTripper) {
+func (c *dataRetriever) WithTransport(transport http.RoundTripper) {
 	c.Client.Transport = transport
 }
 
-func (c *DataRetriever) GetData(url string, buf interface{}, reqModifiers []func(*http.Request), respModifiers []func(r *http.Response, body []byte) error) error {
+func (c *dataRetriever) GetData(url string, buf interface{}, reqModifiers []func(*http.Request), respModifiers []func(r *http.Response, body []byte) error) error {
 	req, err := http.NewRequest(http.MethodGet, url, nil)
 	if err != nil {
 		return err
@@ -70,9 +77,15 @@ func (c *DataRetriever) GetData(url string, buf interface{}, reqModifiers []func
 	return json.Unmarshal(body, buf)
 }
 
-func (c DataRetriever) do(req *http.Request, reqModifiers ...func(r *http.Request)) (*http.Response, error) {
+func (c *dataRetriever) do(req *http.Request, reqModifiers ...func(r *http.Request)) (*http.Response, error) {
 	for _, modifier := range reqModifiers {
 		modifier(req)
 	}
+	ctx := context.Background()
+	err := c.limiter.Wait(ctx)
+	if err != nil {
+		return nil, err
+	}
+
 	return c.Client.Do(req)
 }

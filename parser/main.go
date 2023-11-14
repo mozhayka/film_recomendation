@@ -22,7 +22,7 @@ func main() {
 
 	scrapers := make(map[string]scraper.Scraper)
 
-	scrapers["ivi"] = ivi.NewScraper(client.NewClient())
+	scrapers["ivi"] = ivi.NewScraper(client.NewDataRetriever())
 
 	r.GET("/:source/films", func(c *gin.Context) {
 		fr := filmsRequest{}
