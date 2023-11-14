@@ -2,16 +2,12 @@ import asyncio
 from typing import List
 
 from src.alogrithms.tree import Tree, intersect_trees
-from src.db.interfaces import get_from_base, save_to_base
 from src.parser_requests.interfaces import get_request
 from src.structures import FilmId, Answer
 
 
 async def get_neighbors(f: FilmId) -> List[FilmId]:
-    vertex = get_from_base(f)
-    if vertex is None:
-        vertex = get_request(f)
-        save_to_base(vertex)
+    vertex = get_request(f)
     return vertex.similar
 
 
