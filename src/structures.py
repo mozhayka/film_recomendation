@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from dataclasses import dataclass
@@ -15,6 +16,7 @@ class FilmId:
 @dataclass
 class Vertex:
     val: FilmId
+    source: str
     similar: List[FilmId]
 
 

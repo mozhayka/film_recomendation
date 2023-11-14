@@ -1,4 +1,6 @@
 import json
+from datetime import datetime, timedelta
+
 import psycopg2
 from psycopg2 import sql
 
@@ -22,41 +24,51 @@ def create_table_if_not_exists(conn):
             CREATE TABLE IF NOT EXISTS film (
                 name VARCHAR(255) NOT NULL,
                 url VARCHAR(255) NOT NULL,
+                source VARCHAR(255) NOT NULL,
                 similar_list JSONB,
-                PRIMARY KEY (name, url)
+                updated_at timestamp NOT NULL,
+                PRIMARY KEY ("url")
             );
         '''
+        index_create_query = 'CREATE INDEX idx_name_source ON film (name, source);'
         cursor.execute(table_create_query)
+        cursor.execute(index_create_query)
     conn.commit()
 
 
 def save_to_database(v: Vertex, conn):
     with conn.cursor() as cursor:
         insert_query = sql.SQL('''
-            INSERT INTO film (name, url, similar_list)
-            VALUES (%s, %s, %s)
-            ON CONFLICT (name, url) DO UPDATE
-            SET similar_list = EXCLUDED.similar_list;
+            INSERT INTO film (name, url, source, similar_list, updated_at)
+            VALUES (%s, %s, %s, %s, CURRENT_TIMESTAMP)
+            ON CONFLICT (url) DO UPDATE
+            SET similar_list = EXCLUDED.similar_list, updated_at = CURRENT_TIMESTAMP;
         ''')
-        film_id_tuple = (v.val.name, v.val.url)
+
         similar_list_json = json.dumps(v.similar, default=film_id_serializer) if v.similar else None
-        cursor.execute(insert_query, film_id_tuple + (similar_list_json,))
+
+        cursor.execute(insert_query, (v.val.name, v.val.url, v.source, similar_list_json,))
     conn.commit()
 
 
-def get_from_database(filmId: FilmId, conn):
+def get_from_database(film_id: FilmId, conn):
     with conn.cursor() as cursor:
         select_query = sql.SQL('''
-            SELECT name, url, similar_list
+            SELECT name, url, source, similar_list, updated_at
             FROM film
-            WHERE name = %s AND url = %s;
+            WHERE url = %s;
            ''')
-        cursor.execute(select_query, (filmId.name, filmId.url))
+        cursor.execute(select_query, (film_id.url,))
         result = cursor.fetchone()
 
     if result:
-        similar_list = result[2] if result[2] else []
-        return Vertex(FilmId(name=result[0], url=result[1]), similar=similar_list)
+        (name, url, source, similar_list, updated_at) = result
+
+        if updated_at and datetime.utcnow() - updated_at > timedelta(weeks=1):
+            return None
+
+        similar_list = similar_list if similar_list else []
+        return Vertex(FilmId(name=name, url=url), source=source, similar=similar_list)
     else:
         return None
 
