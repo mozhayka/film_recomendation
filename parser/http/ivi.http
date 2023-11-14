@@ -1,0 +1,36 @@
+# ivi
+
+###
+# @name films
+// @no-log
+// @no-cookie-jar
+GET http://127.0.0.1:8080/ivi/films
+Content-Type: application/json
+
+{
+  "by": "link",
+  "query": "https://www.ivi.tv/watch/33531"
+}
+
+###
+# @name films
+// @no-log
+// @no-cookie-jar
+GET http://127.0.0.1:8080/ivi/films
+Content-Type: application/json
+
+{
+  "by": "title",
+  "query": "брат"
+}
+
+###
+# @name predicts
+// @no-log
+// @no-cookie-jar
+GET http://127.0.0.1:8080/ivi/predicts
+Content-Type: application/json
+
+{
+  "prefix": "бр"
+}
