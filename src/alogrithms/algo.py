@@ -22,7 +22,7 @@ async def next_level(t: Tree):
     for future in asyncio.as_completed(coroutines):
         result = await future
         for film in result:
-            if not t.vertexes.__contains__(film):
+            if film not in t.vertexes:
                 t.vertexes.add(film)
                 t.current_level.append(film)
 
@@ -36,6 +36,6 @@ async def do_search(f1: FilmId, f2: FilmId) -> Answer:
     while intersect is None:
         await next_level(t1)
         await next_level(t2)
-        intersect_trees(t1, t2)
+        intersect = intersect_trees(t1, t2)
     ans = Answer(recommended_films=intersect)
     return ans
