@@ -1,4 +1,4 @@
-from src.alogrithms.interfaces import do_search
+from src.alogrithms.algo import do_search
 from src.telegram_bot.interfaces import read_input, print_answer
 
 
