@@ -27,6 +27,7 @@ class VertexEntity:
     updated_at: datetime
     similar: List[FilmId]
 
+
 # То, что возвращаем пользователю
 @dataclass
 class Answer:
