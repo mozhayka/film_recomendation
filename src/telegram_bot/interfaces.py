@@ -1,4 +1,4 @@
-from src.Python.main_body.structures import FilmId, Answer
+from src.main_body.structures import FilmId, Answer
 
 
 # Возвращает 2 выбранных пользователем фильма в телеграм боте

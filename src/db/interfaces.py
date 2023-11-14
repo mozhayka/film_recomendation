@@ -1,6 +1,6 @@
 from typing import Optional
 
-from src.Python.main_body.structures import Vertex, FilmId
+from src.main_body.structures import Vertex, FilmId
 
 
 # Сохраняет вершину дерева в базу. Если уже есть, то перезаписывает
