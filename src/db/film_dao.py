@@ -1,10 +1,9 @@
 import json
-from datetime import datetime, timedelta
 
 import psycopg2
 from psycopg2 import sql
 
-from src.structures import Vertex, FilmId
+from src.structures import VertexDto, FilmId, VertexEntity
 
 
 def connect_to_database(dbname, user, password, host, port):
@@ -30,13 +29,13 @@ def create_table_if_not_exists(conn):
                 PRIMARY KEY ("url")
             );
         '''
-        index_create_query = 'CREATE INDEX idx_name_source ON film (name, source);'
+        index_create_query = 'CREATE INDEX IF NOT EXISTS idx_name_source ON film (name, source);'
         cursor.execute(table_create_query)
         cursor.execute(index_create_query)
     conn.commit()
 
 
-def save_to_database(v: Vertex, conn):
+def save_to_database(v: VertexDto, conn):
     with conn.cursor() as cursor:
         insert_query = sql.SQL('''
             INSERT INTO film (name, url, source, similar_list, updated_at)
@@ -64,7 +63,7 @@ def get_from_database(film_id: FilmId, conn):
     if result:
         (name, url, source, similar_list, updated_at) = result
         similar_list = similar_list if similar_list else []
-        return Vertex(FilmId(name=name, url=url), source=source, similar=similar_list)
+        return VertexEntity(FilmId(name=name, url=url), source=source, updated_at=updated_at, similar=similar_list)
     else:
         return None
 
