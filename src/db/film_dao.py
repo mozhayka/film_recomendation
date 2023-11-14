@@ -63,10 +63,6 @@ def get_from_database(film_id: FilmId, conn):
 
     if result:
         (name, url, source, similar_list, updated_at) = result
-
-        if updated_at and datetime.utcnow() - updated_at > timedelta(weeks=1):
-            return None
-
         similar_list = similar_list if similar_list else []
         return Vertex(FilmId(name=name, url=url), source=source, similar=similar_list)
     else:
