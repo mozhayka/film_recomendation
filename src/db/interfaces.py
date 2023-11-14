@@ -1,12 +1,15 @@
 from typing import Optional
 
-from src.main_body.structures import Vertex, FilmId
+from src.structures import Vertex, FilmId
 
 
 # Сохраняет вершину дерева в базу. Если уже есть, то перезаписывает
 def save_to_base(v: Vertex) -> None:
     pass
 
+
 # Возвращает по названию фильма (или url) вершину (ее саму и соседей). Если вершины нет в базе, возвращает null
+# Решили обновлять элементы в базе, если последнее изменение было больше недели назад.
+# Поэтому в бд нужно будет также хранить время последнего изменения, и если больше недели назад, то тоже возвращает null
 def get_from_base(id: FilmId) -> Optional[Vertex]:
     pass

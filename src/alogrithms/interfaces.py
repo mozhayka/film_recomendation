@@ -1,4 +1,4 @@
-from src.main_body.structures import FilmId, Answer
+from src.structures import FilmId, Answer
 
 
 # По двум фильмам запускает БФС, возвращает некоторый список подходящих фильмов
