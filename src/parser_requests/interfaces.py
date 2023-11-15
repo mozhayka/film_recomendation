@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 
+from requests import RequestException
+
 from src.conn import conn
 from typing import List
 
@@ -36,7 +38,7 @@ def get_from_database_with_timeout(film_id: FilmId, mode: str):
         if time_difference > timedelta(weeks=1):
             try:
                 vertex = get_recommended_films(film_id, mode, timeout=DEFAULT_REQUEST_TIMEOUT)
-            except requests.Timeout:
+            except RequestException:
                 return vertex
 
     return vertex
