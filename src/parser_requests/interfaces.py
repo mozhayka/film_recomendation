@@ -1,11 +1,17 @@
 from src.db.interfaces import save_to_base, get_from_base
-from src.structures import FilmId, Vertex
+from src.structures import FilmId, VertexDto
 from typing import List
 import requests
 
 
-def json_to_vertex(json) -> Vertex:
-    pass
+def json_to_vertex(json, mode: str) -> VertexDto:
+    movie_data = json['movie']
+    film_id = FilmId(name=movie_data['title'], url=movie_data['link'])
+
+    recommended_movie_data = json['recommended_movies']
+    recommended_movies = [FilmId(name=item['title'], url=item['link']) for item in recommended_movie_data]
+
+    return VertexDto(val=film_id, source=mode, similar=recommended_movies)
 
 
 # Делает GET запросы к парсеру на Go, парсит полученные json-ы и возвращает Vertex
