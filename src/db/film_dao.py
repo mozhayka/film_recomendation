@@ -5,6 +5,11 @@ from psycopg2 import sql
 
 from src.structures import VertexDto, FilmId, VertexEntity
 
+def save_to_base(a):
+    pass 
+
+def get_from_base(a):
+    pass 
 
 def connect_to_database(dbname, user, password, host, port):
     conn = psycopg2.connect(
