@@ -1,6 +1,6 @@
 package ivi
 
-type PredictDto struct {
+type predictDto struct {
 	Result []struct {
 		//Categories       []int    `json:"categories,omitempty"`
 		//ContentPaidTypes []string `json:"content_paid_types,omitempty"`

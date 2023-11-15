@@ -11,6 +11,12 @@ class FilmId:
     name: str
     url: str
 
+    def __hash__(self):
+        return hash(self.url)
+
+    def __eq__(self, other):
+        return self.url == other.url
+
 
 # Это вершины дерева, по которому будем ходить
 @dataclass

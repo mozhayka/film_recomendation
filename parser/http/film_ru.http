@@ -1,0 +1,36 @@
+# ivi
+
+###
+# @name films
+// @no-log
+// @no-cookie-jar
+GET http://127.0.0.1:8080/film_ru/films
+Content-Type: application/json
+
+{
+  "by": "link",
+  "query": "https://www.film.ru/movies/brat"
+}
+
+###
+# @name films
+// @no-log
+// @no-cookie-jar
+GET http://127.0.0.1:8080/film_ru/films
+Content-Type: application/json
+
+{
+  "by": "title",
+  "query": "Терминатор"
+}
+
+###
+# @name predicts
+// @no-log
+// @no-cookie-jar
+GET http://127.0.0.1:8080/film_ru/predicts
+Content-Type: application/json
+
+{
+  "prefix": "брат 2"
+}

@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"parser/src/client"
 	"parser/src/scraper"
+	"parser/src/scraper/film_ru"
 	"parser/src/scraper/ivi"
 )
 
@@ -22,7 +23,8 @@ func main() {
 
 	scrapers := make(map[string]scraper.Scraper)
 
-	scrapers["ivi"] = ivi.NewScraper(client.NewClient())
+	scrapers["ivi"] = ivi.NewScraper(client.NewDataRetriever())
+	scrapers["film_ru"] = film_ru.NewScraper(client.NewDataRetriever())
 
 	r.GET("/:source/films", func(c *gin.Context) {
 		fr := filmsRequest{}
