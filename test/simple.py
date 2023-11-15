@@ -1,11 +1,7 @@
-from src.alogrithms.algo import do_search
-from src.structures import FilmId
-
-
-f1 = FilmId(name="Брат 2", url="")
-f2 = FilmId(name="57 секунд", url="")
+from test.algo_test import do_search_test
+from test.test_data import f1, f2
 
 
 async def test1():
-    ans = await do_search(f1, f2)
+    ans = await do_search_test(f1, f2)
     print(ans.recommended_films)
