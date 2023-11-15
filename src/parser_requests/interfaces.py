@@ -1,7 +1,8 @@
+from typing import List
+
+import requests
 from src.db.interfaces import save_to_base, get_from_base
 from src.structures import FilmId, VertexDto
-from typing import List
-import requests
 
 
 def json_to_vertex(json, mode: str) -> VertexDto:
@@ -16,18 +17,21 @@ def json_to_vertex(json, mode: str) -> VertexDto:
 
 # Делает GET запросы к парсеру на Go, парсит полученные json-ы и возвращает Vertex
 def get_request(film: FilmId, mode: str) -> Vertex:
-    if film.url is None:
-        params = {{"by": "title", "query": film.name}}
-        response = requests.get(f'http://127.0.0.1:8080/{mode}/films', params)
-        json_response = response.json()
-        vertex = json_to_vertex(json_response)
-        save_to_base(vertex)
-        return vertex
+    #     if film.url is None:
+    #         params = {{"by": "title", "query": film.name}}
+    #         response = requests.get(f'http://127.0.0.1:8080/{mode}/films', params)
+    #         json_response = response.json()
+    #         vertex = json_to_vertex(json_response)
+    #         save_to_base(vertex)
+    #         return vertex
 
     vertex = get_from_base(film)
     if vertex is None:
         params = {{"by": "link", "query": film.url}}
-        response = requests.get('http://127.0.0.1:8080/ivi/films', params)
+        response = requests.get(f'http://127.0.0.1:8080/{mode}/films', params)
+        if response.status_code != 200:
+            return None  # TODO: return error form json response
+
         json_response = response.json()
         vertex = json_to_vertex(json_response)
         save_to_base(vertex)
@@ -35,5 +39,12 @@ def get_request(film: FilmId, mode: str) -> Vertex:
 
     return vertex
 
+
 def suggest(query: str, mode: str) -> List[FilmId]:
+    # params = {{"prefix": query}}
+    # response = requests.get(f'http://127.0.0.1:8080/{mode}/predicts', params)
+    # json_response = response.json()
+    # vertex = json_to_vertex(json_response)
+    # # save_to_base(vertex)
+    # return vertex.val
     pass
