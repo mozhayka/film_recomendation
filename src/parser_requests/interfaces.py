@@ -22,7 +22,7 @@ def get_request(film: FilmId, mode: str='ivi') -> VertexDto:
     vertex = get_from_database(film, conn)
     if vertex is None:
         params = {"by": "link", "query": film.url}
-        response = requests.get(f'http://127.0.0.1:8080/{mode}/films', json=params)
+        response = requests.get(f'http://parser:8080/{mode}/films', json=params)
         if response.status_code != 200:
             print(response.json())
             # return VertexDto  # TODO: return error form json response
@@ -39,7 +39,7 @@ def get_request(film: FilmId, mode: str='ivi') -> VertexDto:
 
 def suggest(query: str, mode: str) -> List[FilmId]:
     params = {"prefix": query}
-    response = requests.get(f'http://127.0.0.1:8080/{mode}/predicts', json=params)
+    response = requests.get(f'http://parser:8080/{mode}/predicts', json=params)
     json_response = response.json()
     vertex = json_to_vertex(json_response, mode)
     # save_to_base(vertex)

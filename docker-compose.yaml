@@ -1,48 +1,44 @@
-version: "3"
+version: '3'
 services:
   postgres:
     image: postgres:14.8
+    container_name: postgres
     environment:
-      POSTGRES_DB: "film_recommendation"
-      POSTGRES_USER: "root"
-      POSTGRES_PASSWORD: "pwd123"
+      POSTGRES_USER: film_recommendation
+      POSTGRES_PASSWORD: root
+      POSTGRES_DB: pwd123
     ports:
       - "127.0.0.1:5432:5432/tcp"
+    restart: on-failure
     volumes:
       - ./dev/postgresql/:/var/lib/postgresql/data
 
-
-#version: '3'
-#services:
-#  postgres-db:
-#    image: postgres:latest
-#    environment:
-#      POSTGRES_USER: your_user
-#      POSTGRES_PASSWORD: your_password
-#      POSTGRES_DB: your_database
-#    volumes:
-#      - postgres-data:/var/lib/postgresql/data
-
-#  python-app:
+  python:
 #    image: python:3.9
-#    environment:
-#      TELEGRAM_TOKEN: 6740325435:AAEJ6iUhO94-e_TUKX-0YChWl_bd3b9pNHU
-##      PYTHONPATH: "app/python"
+    build:
+      context: .
+      dockerfile: Dockerfile
+    environment:
+      TELEGRAM_TOKEN: <token>
+#      PYTHONPATH: "app/python"
 #    volumes:
-#      - ./src:/app/python
-#    depends_on:
-#      - postgres-db
-#    command: python /app/python/test/simple.py
-#
-#  go-app:
-#    image: golang:latest
-#    volumes:
-#      - ./parser:/app/parser
-#    depends_on:
-#      - postgres-db
-#    expose:
-#      - "8080"
-#    command: sh -c "cd /app/parser && go install && go run main.go"
-#
-#volumes:
-#  postgres-data:
+#      - ./ :/app/python
+    depends_on:
+      - postgres
+    restart: on-failure
+    command: python /app/python/src/chat/bot.py
+
+  go-app:
+    image: golang:latest
+    container_name: parser
+    volumes:
+      - ./parser:/app/parser
+    depends_on:
+      - postgres
+    expose:
+      - "8080"
+    restart: on-failure
+    command: sh -c "cd /app/parser && go install && go run main.go"
+
+volumes:
+  postgres-data:
