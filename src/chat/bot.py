@@ -7,6 +7,9 @@ import logging
 import validators
 
 from src.algorithms.algo import do_search
+from src.conn import conn
+from src.db.film_dao import create_table_if_not_exists
+from src.parser_requests.interfaces import suggest
 from src.structures import FilmId
 from src.chat.models import *
 
@@ -164,12 +167,7 @@ def handle_help_message(msg: Message):
 
 def _suggest(search_string, mode="ivi") -> List[FilmId]:
     # TODO
-    return [
-        FilmId("Шрек (Мультфильм 2001)", "https://www.ivi.ru/watch/99983"),
-        FilmId("Шрек 2 (Мультфильм 2004)", "https://www.ivi.ru/watch/112470"),
-        FilmId("Шрек Третий (Мультфильм 2007)", "https://www.ivi.ru/watch/105738"),
-        FilmId("Шрек навсегда (Мультфильм 2010)", "https://www.ivi.ru/watch/105743"),
-    ]
+    return suggest(search_string, mode)
 
 def search(user: User):
     loop = asyncio.new_event_loop()
@@ -246,4 +244,5 @@ def hendle_plain_text(msg):
 
 
 if __name__ == "__main__":
+    create_table_if_not_exists(conn)
     bot.polling(none_stop=True)

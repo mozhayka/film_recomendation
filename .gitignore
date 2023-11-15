@@ -1,6 +1,7 @@
 parser/utils/proxywhite.txt
 chat.db
 
+dev/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]

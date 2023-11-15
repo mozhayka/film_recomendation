@@ -1,31 +1,48 @@
-version: '3'
+version: "3"
 services:
-  postgres-db:
-    image: postgres:latest
+  postgres:
+    image: postgres:14.8
     environment:
-      POSTGRES_USER: your_user
-      POSTGRES_PASSWORD: your_password
-      POSTGRES_DB: your_database
+      POSTGRES_DB: "film_recommendation"
+      POSTGRES_USER: "root"
+      POSTGRES_PASSWORD: "pwd123"
+    ports:
+      - "127.0.0.1:5432:5432/tcp"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./dev/postgresql/:/var/lib/postgresql/data
 
-  python-app:
-    image: python:3.9
-    volumes:
-      - ./src:/app/python
-    depends_on:
-      - postgres-db
-    command: python /app/python/main.py
 
-  go-app:
-    image: golang:latest
-    volumes:
-      - ./parser:/app/parser
-    depends_on:
-      - postgres-db
-    expose:
-      - "8080"
-    command: sh -c "cd /app/parser && go install && go run main.go"
+#version: '3'
+#services:
+#  postgres-db:
+#    image: postgres:latest
+#    environment:
+#      POSTGRES_USER: your_user
+#      POSTGRES_PASSWORD: your_password
+#      POSTGRES_DB: your_database
+#    volumes:
+#      - postgres-data:/var/lib/postgresql/data
 
-volumes:
-  postgres-data:
+#  python-app:
+#    image: python:3.9
+#    environment:
+#      TELEGRAM_TOKEN: 6740325435:AAEJ6iUhO94-e_TUKX-0YChWl_bd3b9pNHU
+##      PYTHONPATH: "app/python"
+#    volumes:
+#      - ./src:/app/python
+#    depends_on:
+#      - postgres-db
+#    command: python /app/python/test/simple.py
+#
+#  go-app:
+#    image: golang:latest
+#    volumes:
+#      - ./parser:/app/parser
+#    depends_on:
+#      - postgres-db
+#    expose:
+#      - "8080"
+#    command: sh -c "cd /app/parser && go install && go run main.go"
+#
+#volumes:
+#  postgres-data:
