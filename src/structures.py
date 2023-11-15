@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import List
 
 from dataclasses import dataclass
@@ -19,8 +20,17 @@ class FilmId:
 
 # Это вершины дерева, по которому будем ходить
 @dataclass
-class Vertex:
+class VertexDto:
     val: FilmId
+    source: str
+    similar: List[FilmId]
+
+
+@dataclass
+class VertexEntity:
+    val: FilmId
+    source: str
+    updated_at: datetime
     similar: List[FilmId]
 
 
