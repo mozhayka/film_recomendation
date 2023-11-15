@@ -1,3 +1,5 @@
+from src.db.film_dao import save_to_base, get_from_base
+from src.structures import FilmId, VertexDto
 from typing import List
 
 import requests
@@ -15,14 +17,14 @@ def json_to_vertex(json, mode: str) -> VertexDto:
 
 
 # Делает GET запросы к парсеру на Go, парсит полученные json-ы и возвращает Vertex
-def get_request(film: FilmId, mode: str, conn) -> VertexDto:
-    #     if film.url is None:
-    #         params = {{"by": "title", "query": film.name}}
-    #         response = requests.get(f'http://127.0.0.1:8080/{mode}/films', params)
-    #         json_response = response.json()
-    #         vertex = json_to_vertex(json_response)
-    #         save_to_base(vertex)
-    #         return vertex
+def get_request(film: FilmId, mode: str='ivi') -> VertexDto:
+    if film.url is None:
+        params = {{"by": "title", "query": film.name}}
+        response = requests.get(f'http://127.0.0.1:8080/{mode}/films', params)
+        json_response = response.json()
+        vertex = json_to_vertex(json_response)
+        save_to_base(vertex)
+        return vertex
 
     vertex = get_from_database(film, conn)
     if vertex is None:

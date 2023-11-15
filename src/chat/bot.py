@@ -1,11 +1,12 @@
 from telebot import types
 from telebot.types import Message
+import asyncio
 import telebot
 import os
 import logging
 import validators
 
-# from src.algorithms.algo import suggest
+from src.algorithms.algo import do_search
 from src.structures import FilmId
 from src.chat.models import *
 
@@ -16,6 +17,11 @@ logger.info("Running telegram bot.")
 
 bot = telebot.TeleBot(os.getenv("TELEGRAM_TOKEN"))
 
+
+def clear_user_films(user: User):
+    user.film1 = None
+    user.film2 = None
+    user.save()
 
 @bot.message_handler(commands=["ping"])
 def handle_ping_message(msg: Message):
@@ -165,6 +171,15 @@ def _suggest(search_string, mode="ivi") -> List[FilmId]:
         FilmId("Шрек навсегда (Мультфильм 2010)", "https://www.ivi.ru/watch/105743"),
     ]
 
+def search(user: User):
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+
+    try:
+        return loop.run_until_complete(do_search(FilmId(name='', url=user.film1), FilmId(name='', url=user.film2))) 
+    finally:
+        loop.close()
+
 
 @bot.callback_query_handler(func=lambda call: True)
 def film_callback(call: types.CallbackQuery):
@@ -180,13 +195,10 @@ def film_callback(call: types.CallbackQuery):
             bot.send_message(
                 call.message.chat.id, "Ищем фильм\nЭто может занять какое-то время"
             )
-            bot.send_message(
-                call.message.chat.id,
-                "Предлагаем посмотреть https://www.ivi.ru/watch/105743",
-            )
-            user.film1 = None
-            user.film2 = None
-            user.save()
+            recomends = search(user)
+            bot.send_message(call.message.chat.id, f"Предлагаем к просмотру {recomends.recommended_films[0].url}")
+            clear_user_films(user)
+            
     else:
         bot.send_message(call.message.chat.id, "Произошла проблема")
 
@@ -213,13 +225,11 @@ def hendle_plain_text(msg):
         elif user.film2 == None:
             user.film2 = msg.text
             user.save()
-            # TODO do_search()
             bot.send_message(msg.chat.id, "Ищем подходящий фильм")
-
-        else:
-            # Предыдущий запрос в обработке
-            bot.send_message(msg.chat.id, "Ищем подходящий фильм")
-            pass
+            loop = asyncio.get_event_loop()
+            recomends = search(user)
+            bot.send_message(msg.chat.id, f"Предлагаем к просмотру {recomends.recommended_films[0].url}")
+            clear_user_films(user)
     else:  # Поиск фильма по названию
         suggests = _suggest(msg.text, mode=user.mode)
         filmSuggestKBoard = types.InlineKeyboardMarkup(
@@ -231,6 +241,8 @@ def hendle_plain_text(msg):
             )
 
         bot.send_message(msg.chat.id, "Выберете фильм", reply_markup=filmSuggestKBoard)
+
+
 
 
 if __name__ == "__main__":
