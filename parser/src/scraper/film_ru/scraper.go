@@ -6,7 +6,7 @@ import (
 	"github.com/PuerkitoBio/goquery"
 	"net/http"
 	"net/url"
-	"parser/src/client"
+	"parser/src/data_retriever"
 	modifiers2 "parser/src/modifiers"
 	scraperPkg "parser/src/scraper"
 	"strings"
@@ -18,10 +18,10 @@ const (
 )
 
 type scraper struct {
-	client client.Client
+	client data_retriever.DataRetriever
 }
 
-func NewScraper(client client.Client) *scraper {
+func NewScraper(client data_retriever.DataRetriever) *scraper {
 	return &scraper{
 		client: client,
 	}
@@ -42,6 +42,8 @@ func (s *scraper) ScrapeNeighborsByLink(link string) (*scraperPkg.FilmsScrapeDat
 		return nil, err
 	}
 
+	res.Movie.Link = link
+
 	return res, nil
 }
 
@@ -51,11 +53,11 @@ func (s *scraper) ScrapeNeighborsByTitle(title string) (*scraperPkg.FilmsScrapeD
 		return nil, err
 	}
 
-	if len(pr.Films) == 0 {
+	if len(pr.RecommendedMovies) == 0 {
 		return nil, fmt.Errorf("no films found")
 	}
 
-	u := pr.Films[0].Link
+	u := pr.RecommendedMovies[0].Link
 
 	return s.ScrapeNeighborsByLink(u)
 
@@ -70,13 +72,16 @@ func (s *scraper) Predict(prefix string) (*scraperPkg.FilmsScrapeData, error) {
 	}
 
 	res := &scraperPkg.FilmsScrapeData{
-		Films: []scraperPkg.Film{},
+		Movie: scraperPkg.Film{
+			Title: prefix,
+		},
+		RecommendedMovies: []scraperPkg.Film{},
 	}
 	for _, film := range result.Movies.Data {
 		if !film.IsSerial {
-			res.Films = append(res.Films, scraperPkg.Film{
-				Name: film.CleanTitle,
-				Link: baseUrl + film.Href,
+			res.RecommendedMovies = append(res.RecommendedMovies, scraperPkg.Film{
+				Title: film.CleanTitle,
+				Link:  baseUrl + film.Href,
 			})
 		}
 	}
@@ -91,8 +96,17 @@ func parseFilms(body []byte) (*scraperPkg.FilmsScrapeData, error) {
 	}
 
 	res := &scraperPkg.FilmsScrapeData{
-		Films: []scraperPkg.Film{},
+		RecommendedMovies: []scraperPkg.Film{},
 	}
+
+	doc.Find("div[class='block_breadcrumbs']").Each(func(i int, s *goquery.Selection) {
+		s.Find("a").Each(func(i int, s *goquery.Selection) {
+			href, ok := s.Attr("href")
+			if ok && isFilmLink(href) {
+				res.Movie.Title = s.Text()
+			}
+		})
+	})
 
 	doc.Find("div[class='block_movies wrapper_movies_similar']").Each(func(i int, s *goquery.Selection) {
 
@@ -111,9 +125,9 @@ func parseFilms(body []byte) (*scraperPkg.FilmsScrapeData, error) {
 				return
 			}
 
-			res.Films = append(res.Films, scraperPkg.Film{
-				Name: title,
-				Link: baseUrl + l,
+			res.RecommendedMovies = append(res.RecommendedMovies, scraperPkg.Film{
+				Title: title,
+				Link:  baseUrl + l,
 			})
 
 		})
