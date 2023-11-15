@@ -1,4 +1,4 @@
-from src.alogrithms.algo import do_search
+from src.algorithms.algo import do_search
 from src.structures import FilmId
 
 

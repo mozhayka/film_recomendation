@@ -4,7 +4,10 @@ import telebot
 import os
 import logging
 import validators
-from models import *
+
+# from src.algorithms.algo import suggest
+from src.structures import FilmId
+from src.chat.models import *
 
 logger = logging.getLogger(__name__)
 
@@ -43,6 +46,7 @@ def handle_start_message(msg: Message):
 
     bot.reply_to(msg, f"Привет, {msg.from_user.username}!")
 
+
 @bot.message_handler(commands=["stop"])
 def handle_start_message(msg: Message):
     logger.info(
@@ -53,11 +57,10 @@ def handle_start_message(msg: Message):
             "text": msg.text,
         },
     )
-    if User.get_or_none(User.username == msg.from_user.username) is None:
-        User.insert(username=msg.from_user.username, chat_id=msg.chat.id).execute()
-
-    bot.reply_to(msg, f"Привет, {msg.from_user.username}!")
-
+    user = User.get_or_none(User.username == msg.from_user.username)
+    if user is not None:
+        user.delete_instance()
+    bot.reply_to(msg, f"До свидания!")
 
 
 @bot.message_handler(func=lambda msg: msg.text == "IVI")
@@ -79,7 +82,7 @@ def set_ivi_mode(msg):
 
 
 @bot.message_handler(func=lambda msg: msg.text == "Film.ru")
-def set_filmru_mode(msg):
+def set_film_ru_mode(msg):
     logger.info(
         f"User {msg.from_user.username} setting mode filomoteka",
         extra={
@@ -92,7 +95,7 @@ def set_filmru_mode(msg):
     if user is None:
         bot.reply_to(msg, "Начни с команды /start.")
         return
-    user.mode = "film.ru"
+    user.mode = "film_ru"
     user.save()
 
 
@@ -110,7 +113,9 @@ def handle_mode_message(msg: Message):
     if user is None:
         bot.reply_to(msg, "Твой контекст не найден. Начни с команды /start.")
         return
-    modeKBoard = types.ReplyKeyboardMarkup(row_width=1, resize_keyboard=True, one_time_keyboard=True)
+    modeKBoard = types.ReplyKeyboardMarkup(
+        row_width=1, resize_keyboard=True, one_time_keyboard=True
+    )
     ivi = types.KeyboardButton(text="IVI")
     filmru = types.KeyboardButton(text="Film.ru")
     modeKBoard.add(ivi, filmru)
@@ -151,6 +156,40 @@ def handle_help_message(msg: Message):
     bot.reply_to(msg, "I need some body!")
 
 
+def _suggest(search_string, mode="ivi") -> List[FilmId]:
+    # TODO
+    return [
+        FilmId("Шрек (Мультфильм 2001)", "https://www.ivi.ru/watch/99983"),
+        FilmId("Шрек 2 (Мультфильм 2004)", "https://www.ivi.ru/watch/112470"),
+        FilmId("Шрек Третий (Мультфильм 2007)", "https://www.ivi.ru/watch/105738"),
+        FilmId("Шрек навсегда (Мультфильм 2010)", "https://www.ivi.ru/watch/105743"),
+    ]
+
+
+@bot.callback_query_handler(func=lambda call: True)
+def film_callback(call: types.CallbackQuery):
+    user = User.get_or_none(User.username == call.from_user.username)
+    if validators.url(call.data):  # Ввели ссылку на фильм
+        if user.film1 == None:
+            user.film1 = call.data
+            user.save()
+            bot.send_message(call.message.chat.id, "Выбери второй фильм")
+        elif user.film2 == None:
+            user.film2 = call.data
+            user.save()
+            bot.send_message(
+                call.message.chat.id, "Ищем фильм\nЭто может занять какое-то время"
+            )
+            bot.send_message(
+                call.message.chat.id,
+                "Предлагаем посмотреть https://www.ivi.ru/watch/105743",
+            )
+            user.film1 = None
+            user.film2 = None
+            user.save()
+    else:
+        bot.send_message(call.message.chat.id, "Произошла проблема")
+
 
 @bot.message_handler(func=lambda msg: True)
 def hendle_plain_text(msg):
@@ -165,27 +204,34 @@ def hendle_plain_text(msg):
     user = User.get_or_none(User.username == msg.from_user.username)
     if user is None:
         bot.reply_to(msg, "Начни с команды /start.")
-        return 
-    if validators.url(msg.text): # Ввели ссылку на фильм
-        if user.film1==None:
-            user.film1=msg.text
+        return
+    if validators.url(msg.text):  # Ввели ссылку на фильм
+        if user.film1 == None:
+            user.film1 = msg.text
             user.save()
             bot.send_message(msg.chat.id, "Выбери второй фильм")
-        elif user.film2==None:
-            user.film2=msg.text
+        elif user.film2 == None:
+            user.film2 = msg.text
             user.save()
+            # TODO do_search()
             bot.send_message(msg.chat.id, "Ищем подходящий фильм")
 
         else:
             # Предыдущий запрос в обработке
             bot.send_message(msg.chat.id, "Ищем подходящий фильм")
             pass
-    else:
-        pass
+    else:  # Поиск фильма по названию
+        suggests = _suggest(msg.text, mode=user.mode)
+        filmSuggestKBoard = types.InlineKeyboardMarkup(
+            row_width=1,
+        )
+        for suggest in suggests:
+            filmSuggestKBoard.add(
+                types.InlineKeyboardButton(text=suggest.name, callback_data=suggest.url)
+            )
 
+        bot.send_message(msg.chat.id, "Выберете фильм", reply_markup=filmSuggestKBoard)
 
-def send_recommendation():
-    pass
 
 if __name__ == "__main__":
     bot.polling(none_stop=True)
