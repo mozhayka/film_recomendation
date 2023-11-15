@@ -3,10 +3,11 @@ package main
 import (
 	"github.com/gin-gonic/gin"
 	"net/http"
-	"parser/src/client"
+	"parser/src/data_retriever"
 	"parser/src/scraper"
 	"parser/src/scraper/film_ru"
 	"parser/src/scraper/ivi"
+	"parser/src/transport_repository"
 )
 
 type filmsRequest struct {
@@ -21,10 +22,11 @@ type predictsRequest struct {
 func main() {
 	r := gin.Default()
 
+	trasportRepo := transport_repository.NewTransportRepository()
 	scrapers := make(map[string]scraper.Scraper)
 
-	scrapers["ivi"] = ivi.NewScraper(client.NewDataRetriever())
-	scrapers["film_ru"] = film_ru.NewScraper(client.NewDataRetriever())
+	scrapers["ivi"] = ivi.NewScraper(data_retriever.NewDataRetriever(trasportRepo))
+	scrapers["film_ru"] = film_ru.NewScraper(data_retriever.NewDataRetriever(trasportRepo))
 
 	r.GET("/:source/films", func(c *gin.Context) {
 		fr := filmsRequest{}

@@ -1,10 +1,11 @@
 package scraper
 
 type FilmsScrapeData struct {
-	Films []Film `json:"films"`
+	Movie             Film   `json:"movie"`
+	RecommendedMovies []Film `json:"recommended_movies"`
 }
 
 type Film struct {
-	Name string `json:"name"`
-	Link string `json:"link"`
+	Title string `json:"title"`
+	Link  string `json:"link"`
 }

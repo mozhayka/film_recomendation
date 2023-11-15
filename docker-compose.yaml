@@ -1,0 +1,31 @@
+version: '3'
+services:
+  postgres-db:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: your_user
+      POSTGRES_PASSWORD: your_password
+      POSTGRES_DB: your_database
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  python-app:
+    image: python:3.9
+    volumes:
+      - ./src:/app/python
+    depends_on:
+      - postgres-db
+    command: python /app/python/main.py
+
+  go-app:
+    image: golang:latest
+    volumes:
+      - ./parser:/app/parser
+    depends_on:
+      - postgres-db
+    expose:
+      - "8080"
+    command: sh -c "cd /app/parser && go install && go run main.go"
+
+volumes:
+  postgres-data:
