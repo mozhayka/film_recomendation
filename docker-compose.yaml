@@ -4,11 +4,13 @@ services:
     image: postgres:14.8
     container_name: postgres
     environment:
-      POSTGRES_USER: film_recommendation
-      POSTGRES_PASSWORD: root
-      POSTGRES_DB: pwd123
-    ports:
-      - "127.0.0.1:5432:5432/tcp"
+      POSTGRES_USER: root
+      POSTGRES_PASSWORD: pwd123
+      POSTGRES_DB: film_recommendation
+#    ports:
+#      - "127.0.0.1:5432:5432/tcp"
+    expose:
+      - "5432/tcp"
     restart: on-failure
     volumes:
       - ./dev/postgresql/:/var/lib/postgresql/data
