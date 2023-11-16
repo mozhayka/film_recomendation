@@ -68,6 +68,7 @@ def get_from_database(film_id: FilmId, conn):
     if result:
         (name, url, source, similar_list, updated_at) = result
         similar_list = similar_list if similar_list else []
+        similar_list = [FilmId(name=v['name'], url=v['url']) for v in similar_list]
         return VertexEntity(FilmId(name=name, url=url), source=source, updated_at=updated_at, similar=similar_list)
     else:
         return None

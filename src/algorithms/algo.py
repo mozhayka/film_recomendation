@@ -2,12 +2,13 @@ import asyncio
 from typing import List
 
 from src.algorithms.tree import Tree, intersect_trees
+from src.conn import conn
+from src.db.film_dao import connect_to_database, create_table_if_not_exists
 from src.parser_requests.interfaces import get_request
 from src.structures import FilmId, Answer
 
-
 async def get_neighbors(f: FilmId) -> List[FilmId]:
-    vertex = get_request(f)
+    vertex = get_request(f, "ivi")
     return vertex.similar
 
 
