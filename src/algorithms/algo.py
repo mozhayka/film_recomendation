@@ -7,10 +7,9 @@ from src.structures import FilmId, Answer
 
 
 async def get_neighbors(f: FilmId) -> List[FilmId]:
-    print("async get_neighbors")
     ans = []
     for mod in mods:
-        vertex = get_request(f, mod)
+        vertex = await get_request(f, mod)
         ans += vertex.similar
     return ans
 
@@ -18,9 +17,12 @@ async def get_neighbors(f: FilmId) -> List[FilmId]:
 async def next_level(t: Tree):
     coroutines = [get_neighbors(film) for film in t.current_level]
     t.current_level.clear()
+    #
+    # for future in asyncio.as_completed(coroutines):
 
-    for future in asyncio.as_completed(coroutines):
-        result = await future
+
+    results = await asyncio.gather(*coroutines)
+    for result in results:
         for film in result:
             if film not in t.vertexes:
                 t.vertexes.add(film)

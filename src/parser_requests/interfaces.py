@@ -1,3 +1,5 @@
+import aiohttp as aiohttp
+
 from src.conn import conn
 from typing import List
 
@@ -19,19 +21,21 @@ def json_to_vertex(json, mode: str) -> VertexDto:
 
 
 # Делает GET запросы к парсеру на Go, парсит полученные json-ы и возвращает Vertex
-def get_request(film: FilmId, mode: str) -> VertexDto:
+async def get_request(film: FilmId, mode: str) -> VertexDto:
     vertex = get_from_database(film, conn)
     if vertex is None:
         params = {"by": "link", "query": film.url}
-        response = requests.get(f'http://parser:8080/{mode}/films', json=params)
-        if response.status_code != 200:
-            print(response.json())
-            # return VertexDto  # TODO: return error form json response
+        async with aiohttp.ClientSession() as session:
+            async with session.get(f'http://parser:8080/{mode}/films', json=params) as response:
+                if response.status != 200:
+                    response_data = await response.json()
+                    print(response_data)
+                    # return VertexDto  # TODO: return error form json response
 
-        json_response = response.json()
-        vertex = json_to_vertex(json_response, mode)
-        save_to_database(vertex, conn)
-        return vertex
+                json_response = await response.json()
+                vertex = json_to_vertex(json_response, mode)
+                save_to_database(vertex, conn)
+                return vertex
     # else:
     #     vertex.similar = [FilmId(name=v['name'], url=v['url']) for v in vertex.similar]
 
