@@ -18,8 +18,10 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
-    environment:
-      TELEGRAM_TOKEN: <token>
+#    environment:
+#      TELEGRAM_TOKEN: <token>
+    env_file:
+      - .env
 #      PYTHONPATH: "app/python"
 #    volumes:
 #      - ./ :/app/python
