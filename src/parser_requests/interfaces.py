@@ -4,7 +4,7 @@ from src.conn import conn
 from typing import List
 
 import requests
-from src.db.film_dao import save_to_database, get_from_database
+from src.db.film_dao import save_to_database, get_from_database, get_from_database_forced
 from src.structures import FilmId, VertexDto
 
 
@@ -28,16 +28,12 @@ async def get_request(film: FilmId, mode: str) -> VertexDto:
         async with aiohttp.ClientSession() as session:
             async with session.get(f'http://parser:8080/{mode}/films', json=params) as response:
                 if response.status != 200:
-                    response_data = await response.json()
-                    print(response_data)
-                    # return VertexDto  # TODO: return error form json response
+                    return get_from_database_forced(film, conn)
 
                 json_response = await response.json()
                 vertex = json_to_vertex(json_response, mode)
                 save_to_database(vertex, conn)
                 return vertex
-    # else:
-    #     vertex.similar = [FilmId(name=v['name'], url=v['url']) for v in vertex.similar]
 
     return vertex
 
@@ -47,14 +43,5 @@ def suggest(query: str, mode: str) -> List[FilmId]:
     response = requests.get(f'http://parser:8080/{mode}/predicts', json=params)
     json_response = response.json()
     vertex = json_to_vertex(json_response, mode)
-    # save_to_base(vertex)
     return vertex.similar
 
-# def suggest(search_string, mode='ivi') -> List[FilmId]:
-#     return [
-#         FilmId("Волк с Уолл-стрит", "https://www.ivi.ru/watch/103304"),
-#         FilmId("Шрек (Мультфильм 2001)", "https://www.ivi.ru/watch/99983"),
-#         FilmId("Шрек 2 (Мультфильм 2004)", "https://www.ivi.ru/watch/112470"),
-#         FilmId("Шрек Третий (Мультфильм 2007)", "https://www.ivi.ru/watch/105738"),
-#         FilmId("Шрек навсегда (Мультфильм 2010)", "https://www.ivi.ru/watch/105743"),
-#     ]

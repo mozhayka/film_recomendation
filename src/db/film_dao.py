@@ -1,4 +1,5 @@
 import json
+from datetime import datetime, timedelta
 
 import psycopg2
 from psycopg2 import sql
@@ -56,6 +57,28 @@ def save_to_database(v: VertexDto, conn):
 
 
 def get_from_database(film_id: FilmId, conn):
+    with conn.cursor() as cursor:
+        select_query = sql.SQL('''
+            SELECT name, url, source, similar_list, updated_at
+            FROM film
+            WHERE url = %s;
+           ''')
+        cursor.execute(select_query, (film_id.url,))
+        result = cursor.fetchone()
+
+    if result:
+        if datetime.utcnow() - result.updated_at > timedelta(weeks=1):
+            return None
+
+        (name, url, source, similar_list, updated_at) = result
+        similar_list = similar_list if similar_list else []
+        similar_list = [FilmId(name=v['name'], url=v['url']) for v in similar_list]
+        return VertexEntity(FilmId(name=name, url=url), source=source, updated_at=updated_at, similar=similar_list)
+    else:
+        return None
+
+
+def get_from_database_forced(film_id: FilmId, conn):
     with conn.cursor() as cursor:
         select_query = sql.SQL('''
             SELECT name, url, source, similar_list, updated_at
