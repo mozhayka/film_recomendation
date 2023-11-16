@@ -108,6 +108,13 @@ def set_film_ru_mode(msg):
     user.save()
 
 
+@bot.callback_query_handler(func=lambda call: call.data in ['ivi', 'film_ru'])
+def film_callback(call: types.CallbackQuery):
+    user = User.get_or_none(User.username == call.from_user.username)
+    user.mode = call.data
+    user.save()
+    bot.send_message(call.message.chat.id, f"Выбран режим {user.mode}")
+
 @bot.message_handler(commands=["mode"])
 def handle_mode_message(msg: Message):
     logger.info(
@@ -122,12 +129,13 @@ def handle_mode_message(msg: Message):
     if user is None:
         bot.reply_to(msg, "Твой контекст не найден. Начни с команды /start.")
         return
-    modeKBoard = types.ReplyKeyboardMarkup(
-        row_width=1, resize_keyboard=True, one_time_keyboard=True
-    )
-    ivi = types.KeyboardButton(text="IVI")
-    filmru = types.KeyboardButton(text="Film.ru")
+    modeKBoard = types.types.InlineKeyboardMarkup(
+            row_width=1,
+        )
+    ivi = types.InlineKeyboardButton(text='ivi.ru', callback_data='ivi')
+    filmru = types.InlineKeyboardButton(text='flim.ru', callback_data='flim_ru')
     modeKBoard.add(ivi, filmru)
+
     bot.send_message(msg.chat.id, "Выберите режим работы", reply_markup=modeKBoard)
 
 
@@ -224,7 +232,6 @@ def hendle_plain_text(msg):
             user.film2 = msg.text
             user.save()
             bot.send_message(msg.chat.id, "Ищем подходящий фильм")
-            loop = asyncio.get_event_loop()
             recomends = search(user)
             bot.send_message(msg.chat.id, f"Предлагаем к просмотру {recomends.recommended_films[0].url}")
             clear_user_films(user)
