@@ -8,7 +8,7 @@ from src.db.film_dao import save_to_database, get_from_database, get_from_databa
 from src.structures import FilmId, VertexDto
 
 
-mods = ['ivi']
+mods = ['ivi', 'film_ru']
 
 
 def json_to_vertex(json, mode: str) -> VertexDto:

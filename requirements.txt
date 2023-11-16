@@ -2,3 +2,4 @@ pyTelegramBotAPI
 validators
 peewee
 psycopg2
+aiohttp

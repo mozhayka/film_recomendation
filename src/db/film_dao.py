@@ -67,10 +67,11 @@ def get_from_database(film_id: FilmId, conn):
         result = cursor.fetchone()
 
     if result:
-        if datetime.utcnow() - result.updated_at > timedelta(weeks=1):
-            return None
-
         (name, url, source, similar_list, updated_at) = result
+        if not name:
+            return None
+        if datetime.utcnow() - updated_at > timedelta(weeks=1):
+            return None
         similar_list = similar_list if similar_list else []
         similar_list = [FilmId(name=v['name'], url=v['url']) for v in similar_list]
         return VertexEntity(FilmId(name=name, url=url), source=source, updated_at=updated_at, similar=similar_list)

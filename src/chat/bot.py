@@ -174,7 +174,7 @@ def search(user: User):
     asyncio.set_event_loop(loop)
 
     try:
-        return loop.run_until_complete(do_search(FilmId(name='', url=user.film1), FilmId(name='', url=user.film2))) 
+        return loop.run_until_complete(do_search(FilmId(name='', url=user.film1), FilmId(name='', url=user.film2), user.mode))
     finally:
         loop.close()
 
