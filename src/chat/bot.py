@@ -238,7 +238,7 @@ def hendle_plain_text(msg):
                 types.InlineKeyboardButton(text=suggest.name, callback_data=suggest.url)
             )
 
-        bot.send_message(msg.chat.id, "Выберете фильм", reply_markup=filmSuggestKBoard)
+        bot.send_message(msg.chat.id, "Выберите фильм", reply_markup=filmSuggestKBoard)
 
 
 
